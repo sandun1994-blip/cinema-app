@@ -1,0 +1,210 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mongodb"
+    url      = env("DATABASE_URL")
+}
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+model User {
+    uid       String   @id @default(auto()) @map("_id") @db.ObjectId
+    id        String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    name  String
+    image String?
+
+    Admin   Admin?
+    Manager Manager?
+
+    Bookings Booking[]
+    Tickets  Ticket[]
+}
+
+model Admin {
+    uid String @id @default(auto()) @map("_id") @db.ObjectId
+    id  String @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    User User @relation(fields: [id], references: [id])
+}
+
+model Manager {
+    uid       String   @id @default(auto()) @map("_id") @db.ObjectId
+    id        String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    User     User    @relation(fields: [id], references: [id])
+    Cinema   Cinema? @relation(fields: [cinemaId], references: [id])
+    cinemaId String? @db.ObjectId
+}
+
+model Cinema {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    name      String
+    Screens   Screen[]
+    Address   Address?
+
+    Managers Manager[]
+}
+
+model Address {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    cinemaId  String   @unique @db.ObjectId
+    Cinema    Cinema   @relation(fields: [cinemaId], references: [id])
+    address   String
+    lat       Float
+    lng       Float
+}
+
+model Screen {
+    id              String          @id @default(auto()) @map("_id") @db.ObjectId
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @updatedAt
+    number          Int
+    cinemaId        String          @db.ObjectId
+    Cinema          Cinema          @relation(fields: [cinemaId], references: [id])
+    Seats           Seat[]
+    Showtimes       Showtime[]
+    projectionType  ProjectionType  @default(STANDARD)
+    soundSystemType SoundSystemType @default(DOLBY_ATMOS)
+
+    price Float @default(180)
+
+    @@unique([cinemaId, number])
+}
+
+model Seat {
+    id       String    @id @default(auto()) @map("_id") @db.ObjectId
+    row      Int
+    column   Int
+    screenId String    @db.ObjectId
+    Screen   Screen    @relation(fields: [screenId], references: [id])
+    Bookings Booking[]
+
+    @@unique([screenId, row, column])
+}
+
+model Movie {
+    id          String     @id @default(auto()) @map("_id") @db.ObjectId
+    createdAt   DateTime   @default(now())
+    updatedAt   DateTime   @updatedAt
+    title       String
+    director    String
+    genre       Genre
+    duration    Int // Duration in minutes
+    releaseDate DateTime
+    posterUrl   String?
+    Showtimes   Showtime[]
+}
+
+model Showtime {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    startTime DateTime
+    movieId   String    @db.ObjectId
+    Movie     Movie     @relation(fields: [movieId], references: [id])
+    screenId  String    @db.ObjectId
+    Screen    Screen    @relation(fields: [screenId], references: [id])
+    Bookings  Booking[]
+
+    status ShowtimeStatus?
+
+    @@unique([startTime, screenId])
+}
+
+model Booking {
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+    userId     String
+    User       User     @relation(fields: [userId], references: [id])
+    showtimeId String   @db.ObjectId
+    Showtime   Showtime @relation(fields: [showtimeId], references: [id])
+    row        Int
+    column     Int
+    screenId   String   @db.ObjectId
+    Seat       Seat     @relation(fields: [screenId, row, column], references: [screenId, row, column])
+    Ticket     Ticket   @relation(fields: [ticketId], references: [id])
+    ticketId   String   @db.ObjectId
+
+    @@unique([screenId, row, column, showtimeId], name: "uniqueSeatShowtime")
+    @@index([screenId, row, column], name: "seatIndex")
+}
+
+model Ticket {
+    id   String @id @default(auto()) @map("_id") @db.ObjectId
+    uid  String
+    User User   @relation(fields: [uid], references: [id])
+
+    qrCode String?
+
+    Bookings Booking[]
+}
+
+enum ProjectionType {
+    STANDARD
+    IMAX
+    DOLBY_CINEMA
+    RPX
+    SCREENX
+    PLF // Premium Large Format
+}
+
+enum SoundSystemType {
+    MONO
+    STEREO
+    DOLBY_DIGITAL
+    DOLBY_ATMOS
+    DTS
+    DTS_X
+    SONY_SDDS
+    AURO_3D
+    IMAX_ENHANCED
+}
+
+enum Genre {
+    ACTION
+    ADVENTURE
+    ANIMATION
+    COMEDY
+    CRIME
+    DOCUMENTARY
+    DRAMA
+    FAMILY
+    FANTASY
+    FILM_NOIR
+    HISTORY
+    HORROR
+    MUSIC
+    MYSTERY
+    ROMANCE
+    SCI_FI
+    SHORT
+    SPORT
+    THRILLER
+    WAR
+    WESTERN
+}
+
+enum ShowtimeStatus {
+    POSTPONED
+    CANCELLED
+}
