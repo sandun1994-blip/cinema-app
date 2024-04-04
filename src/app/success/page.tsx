@@ -8,7 +8,7 @@ export default async function Page({
 }) {
   const sessionId = searchParams?.session_id as string
 
- // console.log('sessionId', sessionId)
+  console.log('sessionId', sessionId)
   if (!sessionId) {
     return <div>Session id missing.</div>
   }

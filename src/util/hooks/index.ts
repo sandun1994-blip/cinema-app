@@ -170,7 +170,7 @@ export const useHandleSearch = () => {
 
 export function useGetCinema({ cinemaId }: { cinemaId: string | null }) {
   const { data, refetch } = trpcClient.cinemas.cinema.useQuery(
-    { id: +(cinemaId || '') },
+    { id: (cinemaId || '') },
     { enabled: false },
   )
 

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import * as bwipjs from 'bwip-js';
+import  bwipjs from 'bwip-js';
 import { createTRPCRouter, protectedProcedure } from '..'
 import { stripe } from '@/db/stripe'
 import { TRPCError } from '@trpc/server'
@@ -98,6 +98,9 @@ export const stripeRoutes = createTRPCRouter({
           },
         })
 
+        
+        
+
         const qrData = {
           userId: ticket.uid,
           ticketId: ticket.id,
@@ -107,17 +110,21 @@ export const stripeRoutes = createTRPCRouter({
           time: format(new Date(ticket.Bookings[0].Showtime.startTime), 'PPp'),
         }
 
+
+
+
         const png = await bwipjs.toBuffer({
           bcid: 'qrcode', // Barcode type
           text: JSON.stringify(qrData), // Text to encode
           textxalign: 'center', // Align the text to the center
         })
-
          const qrCode = await firebaseUpload(png, userId, ticket.id)
+
         const updatedTicket = await ctx.db.ticket.update({
           where: { id: ticket.id },
           data: { qrCode },
         })
+
 
         return updatedTicket
       } else {

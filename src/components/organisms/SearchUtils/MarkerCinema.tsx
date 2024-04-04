@@ -26,7 +26,7 @@ export const MarkerCinema = ({
         addParam('cinemaId', cinema.id)
       }}
     >
-<Tv2/>
+      <Tv2 />
       <MarkerText>{cinema.name.split(' ').slice(0, 2).join(' ')}</MarkerText>
     </Marker>
   )

@@ -29,7 +29,7 @@ export const DisplayCinemas = () => {
     addressWhere: locationFilter,
   })
 
-  console.log(data);
+
   
 
   useEffect(() => {

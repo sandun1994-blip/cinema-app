@@ -42,7 +42,7 @@ export const MovieDialog = () => {
       open={openDialog}
       setOpen={(state) => {
         deleteAll()
-        //console.log('Deleing..',state)
+        console.log('Deleing..',state)
         setOpenDialog(state)
       }}
     >
